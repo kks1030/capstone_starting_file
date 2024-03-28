@@ -1,0 +1,37 @@
+version: '3.3'
+
+networks:
+  default:
+    external:
+      name: common_network
+
+services:
+
+  datatool_fe:
+    container_name: datatool_fe
+    build:
+      context: ./client_app
+    #env_file:
+    #  - ./client_app/.env.production
+    #user: 1000:1007 # voctree:vtdevs #error
+    volumes:
+      - ./client_app/dist:/app
+    ports:
+      - 8088:80
+    restart: unless-stopped
+
+  datatool_be:
+    container_name: datatool_be
+    build:
+      context: ./server_app
+    env_file:
+      - ./server_app/.env
+    user: 1000:1007 # voctree:vtdevs
+    volumes:
+      - .:/app
+      #- /tmp/datatool_capstone:/tmp/datatool_capstone
+    ports:
+      - 8084:80
+    restart: unless-stopped
+    # linux
+    entrypoint: ["/app/.venv311/bin/python3.11", "-m", "uvicorn", "server:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "80", "--workers", "4", "--log-config", "server_app/resources/config/server/server.ini"]
